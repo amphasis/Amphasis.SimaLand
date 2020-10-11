@@ -1,7 +1,9 @@
 ﻿using System.Text.Json.Serialization;
+using Amphasis.SimaLand.JsonApi;
 
 namespace Amphasis.SimaLand.Models
 {
+    [ContentType("application/vnd.goa.error")]
     public class ErrorResponse
     {
         [JsonPropertyName("status")]

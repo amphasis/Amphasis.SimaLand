@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Amphasis.SimaLand.JsonApi;
 using Amphasis.SimaLand.Models;
@@ -26,11 +28,6 @@ namespace Amphasis.SimaLand
             _httpClient.BaseAddress = new Uri(BaseUriString, UriKind.Absolute);
         }
 
-        /// <summary>
-        /// Маркер авторизации доступа к API
-        /// </summary>
-        public string AccessToken { get; set; }
-
         public async Task<string> GetAccessTokenAsync(string email, string password)
         {
             const string signinUriString = "signin";
@@ -49,9 +46,46 @@ namespace Amphasis.SimaLand
                 var headers = httpResponseMessage.Headers;
                 const string authorizationHeaderName = "Authorization";
                 var authorizationHeaderValuesEnumerable = headers.GetValues(authorizationHeaderName);
-                string token = authorizationHeaderValuesEnumerable.FirstOrDefault();
+                string tokenWithScheme = authorizationHeaderValuesEnumerable.First();
+                int delimiterIndex = tokenWithScheme.IndexOf(' ');
+                string token = tokenWithScheme.Substring(delimiterIndex + 1);
 
                 return token;
+            }
+        }
+
+        public void SetAccessToken(string accessToken)
+        {
+            const string scheme = "Bearer";
+            var authenticationHeader = new AuthenticationHeaderValue(scheme, parameter: accessToken);
+            _httpClient.DefaultRequestHeaders.Authorization = authenticationHeader;
+        }
+
+        public async Task<ItemResponse> GetItemAsync(int itemId)
+        {
+            string getItemUriString = $"item/{itemId}";
+            var uri = new Uri(getItemUriString, UriKind.Relative);
+
+            using (var httpResponseMessage = await _httpClient.GetAsync(uri))
+            {
+                await httpResponseMessage.EnsureSuccessAsync();
+                var item = await httpResponseMessage.ReadJsonAsync<ItemResponse>();
+
+                return item;
+            }
+        }
+
+        public async Task<IList<ItemResponse>> GetItemsAsync(int pageId)
+        {
+            string getItemUriString = $"item?p={pageId}";
+            var uri = new Uri(getItemUriString, UriKind.Relative);
+
+            using (var httpResponseMessage = await _httpClient.GetAsync(uri))
+            {
+                await httpResponseMessage.EnsureSuccessAsync();
+                var item = await httpResponseMessage.ReadJsonAsync<IList<ItemResponse>>();
+
+                return item;
             }
         }
     }
