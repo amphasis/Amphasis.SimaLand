@@ -7,6 +7,9 @@ namespace Amphasis.SimaLand.Test
 {
     public class SimaLandApiClientTests
     {
+        private const string EmailEnvironmentVariableName = "SIMALAND_EMAIL";
+        private const string PasswordEnvironmentVariableName = "SIMALAND_PASSWORD";
+
         private SimaLandApiClient _client;
         private string _email;
         private string _password;
@@ -16,8 +19,18 @@ namespace Amphasis.SimaLand.Test
         {
             var httpClient = new HttpClient();
             _client = new SimaLandApiClient(httpClient);
-            _email = Environment.GetEnvironmentVariable("SIMALAND_EMAIL");
-            _password = Environment.GetEnvironmentVariable("SIMALAND_PASSWORD");
+            
+            _email = Environment.GetEnvironmentVariable(EmailEnvironmentVariableName)
+                ?? throw EnvironmentVariableException(EmailEnvironmentVariableName);
+
+            _password = Environment.GetEnvironmentVariable(PasswordEnvironmentVariableName)
+                ?? throw EnvironmentVariableException(PasswordEnvironmentVariableName);
+
+            static Exception EnvironmentVariableException(string variableName)
+            {
+                string message = $"{variableName} environment variable not set";
+                return new InvalidOperationException(message);
+            }
         }
 
         [Test]
