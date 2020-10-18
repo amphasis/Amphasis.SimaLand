@@ -20,7 +20,7 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --configuration Release --no-restore
+      run: dotnet build --configuration Release --no-restore --version-suffix ${{ github.run_number }}
     - name: Test
       env:
         SIMALAND_EMAIL: ${{ secrets.SIMALAND_EMAIL }} 
