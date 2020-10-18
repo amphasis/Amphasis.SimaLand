@@ -43,6 +43,7 @@ namespace Amphasis.SimaLand.Test
             string token = await _client.GetAccessTokenAsync(_email, _password);
             var jwtSecurityToken = new JwtSecurityToken(token);
             Assert.Greater(jwtSecurityToken.ValidTo, DateTime.Now, "jwtSecurityToken.ValidTo > DateTime.Now");
+            _client.SetAccessToken(token);
         }
 
         [TestCase(178000, ExpectedResult = 280875)]
