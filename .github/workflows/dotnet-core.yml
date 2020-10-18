@@ -30,4 +30,6 @@ jobs:
         SIMALAND_PASSWORD: ${{ secrets.SIMALAND_PASSWORD }} 
       run: dotnet test --no-restore --verbosity normal
     - name: Publish NuGet Package
-      run: dotnet nuget push --api-key ${{ secrets.GITHUB_TOKEN }} Amphasis.SimaLand.ApiClient/bin/Release/Amphasis.SimaLand.$VERSION.nupkg
+      run: |
+        dotnet nuget list source
+        dotnet nuget push --api-key ${{ secrets.GITHUB_TOKEN }} Amphasis.SimaLand.ApiClient/bin/Release/Amphasis.SimaLand.$VERSION.nupkg
