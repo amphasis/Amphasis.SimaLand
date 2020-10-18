@@ -26,3 +26,5 @@ jobs:
         SIMALAND_EMAIL: ${{ secrets.SIMALAND_EMAIL }} 
         SIMALAND_PASSWORD: ${{ secrets.SIMALAND_PASSWORD }} 
       run: dotnet test --no-restore --verbosity normal
+    - name: Publish NuGet Package
+      run: dotnet nuget push --api-key ${{ secrets.GITHUB_TOKEN }}
