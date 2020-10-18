@@ -7,7 +7,6 @@ namespace Amphasis.SimaLand.JsonApi
     public class SimaLandApiException : HttpRequestException
     {
         public SimaLandApiException()
-            : base()
         {
         }
 
