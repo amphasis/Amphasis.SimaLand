@@ -22,4 +22,7 @@ jobs:
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Test
+      env:
+        SIMALAND_EMAIL: ${{ secrets.SIMALAND_EMAIL }} 
+        SIMALAND_PASSWORD: ${{ SIMALAND_PASSWORD }} 
       run: dotnet test --no-restore --verbosity normal
