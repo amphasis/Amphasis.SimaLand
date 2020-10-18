@@ -1,5 +1,8 @@
 name: .NET Core
 
+env:
+  VERSION: 1.0.${{ github.run_number }} 
+
 on:
   push:
     branches: [ master ]
@@ -20,11 +23,11 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build --configuration Release --no-restore /p:Version=1.0.${{ github.run_number }}
+      run: dotnet build --configuration Release --no-restore /p:Version=$VERSION
     - name: Test
       env:
         SIMALAND_EMAIL: ${{ secrets.SIMALAND_EMAIL }} 
         SIMALAND_PASSWORD: ${{ secrets.SIMALAND_PASSWORD }} 
       run: dotnet test --no-restore --verbosity normal
     - name: Publish NuGet Package
-      run: dotnet nuget push --api-key ${{ secrets.GITHUB_TOKEN }}
+      run: dotnet nuget push --api-key ${{ secrets.GITHUB_TOKEN }} Amphasis.SimaLand.ApiClient/bin/Release/Amphasis.SimaLand.$VERSION.nupkg
