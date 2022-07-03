@@ -1,57 +1,50 @@
 ﻿using System;
-using System.Linq;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using Amphasis.SimaLand.Models;
 
 namespace Amphasis.SimaLand.JsonApi
 {
-    internal static class HttpResponseMessageExtensions
-    {
-        private const string ApplicationJsonContentType = "application/json";
+	internal static class HttpResponseMessageExtensions
+	{
+		public static async Task<T> ReadJsonAsync<T>(this HttpResponseMessage httpResponseMessage)
+		{
+			if (httpResponseMessage == null) throw new ArgumentNullException(nameof(httpResponseMessage));
 
-        private static readonly string ErrorContentType = typeof(ErrorResponse)
-            .GetCustomAttribute<ContentTypeAttribute>()
-            ?.ContentType ?? ApplicationJsonContentType;
+			await httpResponseMessage.EnsureSuccessAsync();
+			var httpContent = httpResponseMessage.Content;
+			httpContent.EnsureContentTypeIs(ContentTypes.ApplicationJson);
+			var deserializedContent = await httpContent.ReadJsonAsync<T>();
 
-        public static async Task<T> ReadJsonAsync<T>(this HttpResponseMessage httpResponseMessage)
-        {
-            if (httpResponseMessage == null) throw new ArgumentNullException(nameof(httpResponseMessage));
+			return deserializedContent;
+		}
 
-            await httpResponseMessage.EnsureSuccessAsync();
-            var httpContent = httpResponseMessage.Content;
-            string contentType = GetContentType<T>();
-            httpContent.EnsureContentTypeIs(contentType);
-            var deserializedContent = await httpContent.ReadJsonAsync<T>();
+		public static async ValueTask EnsureSuccessAsync(this HttpResponseMessage httpResponseMessage)
+		{
+			if (httpResponseMessage == null) throw new ArgumentNullException(nameof(httpResponseMessage));
 
-            return deserializedContent;
-        }
+			if (httpResponseMessage.IsSuccessStatusCode) return;
 
-        private static string GetContentType<T>()
-        {
-            var type = typeof(T);
+			var httpContent = httpResponseMessage.Content;
+			var errorType = TryGetErrorTypeString(httpContent);
+			if (errorType == null) httpResponseMessage.EnsureSuccessStatusCode();
 
-            var contentTypeAttribute = 
-                type.GetCustomAttribute<ContentTypeAttribute>() ??
-                type.GenericTypeArguments.FirstOrDefault()?.GetCustomAttribute<ContentTypeAttribute>();
+			var errorResponse = await httpContent.ReadJsonAsync<ErrorResponse>();
 
-            string contentType = contentTypeAttribute?.ContentType ?? ApplicationJsonContentType;
+			throw SimaLandApiException.Create(
+				errorResponse,
+				ErrorTypeParser.Parse(errorType),
+				httpResponseMessage.StatusCode);
+		}
 
-            return contentType;
-        }
+		private static string TryGetErrorTypeString(HttpContent httpContent)
+		{
+			var mediaType = httpContent.Headers.ContentType.MediaType;
+			var match = ContentTypes.ApplicationErrorRegex.Match(mediaType);
 
-        public static async ValueTask EnsureSuccessAsync(this HttpResponseMessage httpResponseMessage)
-        {
-            if (httpResponseMessage == null) throw new ArgumentNullException(nameof(httpResponseMessage));
-
-            if (httpResponseMessage.IsSuccessStatusCode) return;
-
-            var httpContent = httpResponseMessage.Content;
-            if (!httpContent.ContentTypeIs(ErrorContentType)) httpResponseMessage.EnsureSuccessStatusCode();
-            var errorResponse = await httpContent.ReadJsonAsync<ErrorResponse>();
-
-            throw SimaLandApiException.FromError(errorResponse);
-        }
-    }
+			return match.Success
+				? match.Captures[0].Value
+				: null;
+		}
+	}
 }
