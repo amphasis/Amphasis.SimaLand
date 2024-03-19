@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Amphasis.SimaLand.JsonApi
@@ -9,7 +10,7 @@ namespace Amphasis.SimaLand.JsonApi
 	{
 		private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
 		{
-			IgnoreNullValues = true
+			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
 		};
 
 		public static async Task<HttpResponseMessage> PostJsonAsync<T>(this HttpClient httpClient, Uri uri, T requestContent)
