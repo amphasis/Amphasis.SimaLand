@@ -1,0 +1,35 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+env:
+  version: 1.1.${{ github.run_number }}
+  nuget_source: https://nuget.pkg.github.com/amphasis/index.json
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore --configuration Release /p:Version=${{ env.version }}
+    - name: Test
+      env:
+        SIMALAND_EMAIL: ${{ secrets.SIMALAND_EMAIL }} 
+        SIMALAND_PASSWORD: ${{ secrets.SIMALAND_PASSWORD }} 
+      run: dotnet test --no-build --configuration Release --verbosity normal
+    - name: Publish NuGet Package
+      run: dotnet nuget push Amphasis.SimaLand.ApiClient/bin/Release/Amphasis.SimaLand.${{ env.version }}.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source ${{ env.nuget_source }}
