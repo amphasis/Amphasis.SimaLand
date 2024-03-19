@@ -1,3 +1,3 @@
 # Amphasis.SimaLand
 
-![.NET Core](https://github.com/amphasis/Amphasis.SimaLand/workflows/.NET%20Core/badge.svg)
+[![.NET](https://github.com/amphasis/Amphasis.SimaLand/actions/workflows/dotnet.yml/badge.svg)](https://github.com/amphasis/Amphasis.SimaLand/actions/workflows/dotnet.yml)
